@@ -1,9 +1,15 @@
-import Image from "next/image";
+'use client'
+import BlogList from "@/Components/BlogList";
+import Footer from "@/Components/Footer";
+import Header from "@/Components/Header";
+
 
 export default function Home() {
   return (
-    <main className="flex min-h-screen flex-col items-center justify-between p-24">
-      Home
+    <main className="">
+      <Header />
+      <BlogList />
+      <Footer />
     </main>
   );
 }
