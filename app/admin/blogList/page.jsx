@@ -1,8 +1,9 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import axios from "axios";
 import EditBlogModal from "./EditBlogModal";
 import DeleteConfirmationModal from "./DeleteConfirmationModal";
+import { toast } from "react-toastify";
 
 const BlogList = () => {
   const [blogs, setBlogs] = useState([]);
@@ -13,18 +14,18 @@ const BlogList = () => {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [blogToDelete, setBlogToDelete] = useState(null);
 
-  useEffect(() => {
-    const fetchBlogs = async () => {
-      try {
-        const response = await axios.get("/api/blog");
-        setBlogs(response.data.data); // Adjust based on the structure of the response
-      } catch (error) {
-        setError(error.message);
-      } finally {
-        setLoading(false);
-      }
-    };
+  const fetchBlogs = useCallback(async () => {
+    try {
+      const response = await axios.get("/api/blog");
+      setBlogs(response.data.data);
+    } catch (error) {
+      setError(error.message);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
+  useEffect(() => {
     fetchBlogs();
   }, []);
 
@@ -47,11 +48,15 @@ const BlogList = () => {
 
   const handleDeleteConfirm = async () => {
     try {
-      await axios.delete(`/api/blog/${blogToDelete._id}`);
-      setBlogs((prevBlogs) =>
-        prevBlogs.filter((blog) => blog._id !== blogToDelete._id)
-      );
+      const response = await axios.delete(`/api/blog?id=${blogToDelete._id}`);
+      fetchBlogs();
       handleCloseModals();
+      console.log(response, "deleted blog response");
+      if (response.status === 200) {
+        toast.success(response.data.message);
+      } else {
+        toast.error(response.data.message);
+      }
     } catch (error) {
       console.error("Error deleting blog:", error);
     }
@@ -68,7 +73,7 @@ const BlogList = () => {
   return (
     <div className="p-4">
       <h1 className="text-2xl font-bold mb-4">Blog List</h1>
-      <div className="overflow-x-auto">
+      <div className="overflow-x-auto max-h-[calc(100vh-8rem)] overflow-y-auto">
         <table className="min-w-full bg-white border border-gray-300">
           <thead className="bg-gray-100 sticky top-0">
             <tr>
@@ -86,8 +91,8 @@ const BlogList = () => {
             {blogs.map((blog) => (
               <tr
                 key={blog._id}
-                className="border-b cursor-pointer"
-                onClick={() => handleEditClick(blog)}
+                className="border-b"
+                // onClick={() => handleEditClick(blog)}
               >
                 <td className="py-2 px-4">
                   <img
@@ -108,8 +113,8 @@ const BlogList = () => {
                   />
                 </td>
                 <td className="py-2 px-4">
-                  {new Date(blog.date).toLocaleDateString()}
-                </td>
+                  {new Date(blog.date).toDateString()}
+                </td>   
                 <td className="py-2 px-4 flex items-center">
                   <button
                     className="text-blue-500 hover:underline"
@@ -138,7 +143,11 @@ const BlogList = () => {
 
       {/* Modal for editing */}
       {isEditModalOpen && (
-        <EditBlogModal blog={selectedBlog} onClose={handleCloseModals} />
+        <EditBlogModal
+          blog={selectedBlog}
+          onClose={handleCloseModals}
+          fetchBlogs={fetchBlogs}
+        />
       )}
 
       {/* Modal for delete confirmation */}

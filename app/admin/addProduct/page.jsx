@@ -44,25 +44,16 @@ const AddProduct = () => {
         response.data.status === "success" ||
         response.data.statusCode === 201
       ) {
-        toast.success(response.data.message, {
-          position: "top-center",
-          autoClose: 5000,
-        });
+        toast.success(response.data.message);
         setImage("");
         setData(initialData);
         setAuthorImage("");
       } else {
-        toast.error(response.data.message, {
-          position: "top-center",
-          autoClose: 5000,
-        });
+        toast.error(response.data.message);
       }
     } catch (error) {
       console.error(error);
-      toast.error("An error occurred while submitting the form.", {
-        position: "top-center",
-        autoClose: 5000,
-      });
+      toast.error("An error occurred while submitting the form.");
     }
   };
 

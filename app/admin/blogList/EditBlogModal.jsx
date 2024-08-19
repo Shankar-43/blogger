@@ -1,25 +1,59 @@
 "use client";
 import React, { useState } from "react";
 import axios from "axios";
+import { toast } from "react-toastify";
 
-const EditBlogModal = ({ blog, onClose }) => {
+const EditBlogModal = ({ blog, onClose, fetchBlogs }) => {
   const [title, setTitle] = useState(blog.title);
   const [description, setDescription] = useState(blog.description);
   const [category, setCategory] = useState(blog.category);
   const [author, setAuthor] = useState(blog.author);
+  const [image, setImage] = useState(null);
+  const [authorImg, setAuthorImg] = useState(null);
 
   const handleSave = async () => {
     try {
-      await axios.put(`/api/blog/${blog._id}`, {
-        title,
-        description,
-        category,
-        author,
+      const formData = new FormData();
+      formData.append("title", title);
+      formData.append("description", description);
+      formData.append("category", category);
+      formData.append("author", author);
+
+      if (image) {
+        formData.append("image", image);
+      }
+
+      if (authorImg) {
+        formData.append("authorImg", authorImg);
+      }
+
+      const response = await axios.put(`/api/blog?id=${blog._id}`, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
       });
-      onClose(); // Close the modal after saving
+
+      if (response.data.statusCode === 200) {
+        toast.success(response.data.message);
+        fetchBlogs();
+      } else {
+        toast.error(response.data.message);
+      }
+
+      onClose();
     } catch (error) {
       console.error("Error updating blog:", error);
+      toast.error("Failed to update blog");
+      fetchBlogs();
     }
+  };
+
+  const handleImageChange = (e) => {
+    setImage(e.target.files[0]);
+  };
+
+  const handleAuthorImgChange = (e) => {
+    setAuthorImg(e.target.files[0]);
   };
 
   return (
@@ -58,6 +92,22 @@ const EditBlogModal = ({ blog, onClose }) => {
             type="text"
             value={author}
             onChange={(e) => setAuthor(e.target.value)}
+            className="w-full border border-gray-300 p-2 rounded"
+          />
+        </div>
+        <div className="mb-4">
+          <label className="block text-gray-700 mb-1">Blog Image</label>
+          <input
+            type="file"
+            onChange={handleImageChange}
+            className="w-full border border-gray-300 p-2 rounded"
+          />
+        </div>
+        <div className="mb-4">
+          <label className="block text-gray-700 mb-1">Author Image</label>
+          <input
+            type="file"
+            onChange={handleAuthorImgChange}
             className="w-full border border-gray-300 p-2 rounded"
           />
         </div>
