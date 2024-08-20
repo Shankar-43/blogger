@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useCallback, useState } from "react";
 import { FaGoogle, FaApple } from "react-icons/fa";
 import { RiMailLine, RiLockLine } from "react-icons/ri";
 import axios from "axios"; // Import axios for API requests
@@ -7,6 +7,10 @@ import "./login.css";
 import Link from "next/link";
 import { MdEmail } from "react-icons/md";
 import { signIn } from "next-auth/react";
+import { debounce } from "lodash";
+import { toast } from "react-toastify";
+import Cookies from "js-cookie";
+
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -87,6 +91,35 @@ const Login = () => {
     }
   };
 
+  const handleGoogleLogin = useCallback(async () => {
+    try {
+      const result = await signIn("google", {
+        callbackUrl: Cookies.get("original_url") || "/home",
+        redirect: false,
+      });
+      console.log(result, "results");
+      if (result?.error) {
+        // Handle error
+        console.error("Sign-in error:", result.error);
+        toast.error("Login failed. Please try again later.", {
+          autoClose: 3000,
+          position: "top-center",
+        });
+      } else {
+        // Handle successful login
+        console.log("Sign-in result:", result);
+      }
+    } catch (error) {
+      console.error("An error occurred during Google login:", error);
+      toast.error("Login failed. Please try again later.", {
+        autoClose: 3000,
+        position: "top-center",
+      });
+    }
+  }, []);
+
+  const debounceHandleGoogleLogin = debounce(handleGoogleLogin, 1000);
+
   return (
     <div className="flex justify-center items-center h-[100vh] border border-black">
       <form className="form" onSubmit={handleSubmit}>
@@ -136,7 +169,11 @@ const Login = () => {
         </Link>
         <p className="p line">Or With</p>
         <div className="flex-row">
-          <button className="btn google" type="button">
+          <button
+            className="btn google"
+            type="button"
+            onClick={debounceHandleGoogleLogin}
+          >
             <FaGoogle size={20} />
             Google
           </button>
