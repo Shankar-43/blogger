@@ -69,11 +69,19 @@ const Login = () => {
     }
 
     try {
-      // Example API endpoint for modal email
-      const response = await axios.post("/api/send-email", {
-        email: modalEmail,
+      // const response = await axios.post("/api/email", {
+      //   email: modalEmail,
+      // });
+
+      const formData = new FormData();
+      formData.append("email", modalEmail);
+
+      const response = await axios.post("/api/email", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
       });
-      console.log(response.data); // Handle successful email submission
+      console.log("2222", response.data); // Handle successful email submission
     } catch (err) {
       setError(err.response?.data?.message || "Something went wrong");
     }
@@ -124,7 +132,7 @@ const Login = () => {
         </button>
         {error && <p className="error">{error}</p>}
         <Link href={"/register"} className="p">
-          Don't have an account? <span className="span">Sign Up</span>
+          Do not have an account? <span className="span">Sign Up</span>
         </Link>
         <p className="p line">Or With</p>
         <div className="flex-row">
